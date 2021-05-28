@@ -1,0 +1,26 @@
+ARG PLATFORM=amd64
+FROM ${PLATFORM}/debian:buster-slim
+
+# Avoid tzdata prompt 
+ARG DEBIAN_FRONTEND=noninteractive
+
+# For video streaming app
+RUN echo "installing streaming app deps" && \
+    apt-get update && \
+    apt-get install -y protobuf-compiler libprotoc-dev python3-pip python3-grpcio python3-kubernetes && \
+    apt-get clean && \
+    pip3 install protobuf flask
+
+# For anomaly detection app (redundant to make clear which deps are associated with which project)
+RUN echo "installing anomally detection app deps" && \
+    apt-get update && \
+    apt-get install -y protobuf-compiler libprotoc-dev python3-pip \
+    python3-grpcio python3-sklearn && \
+    apt-get clean && \
+    pip3 install numpy protobuf flask
+
+# For license checking
+RUN echo "installing pip-licenses to analyze licenses" && \
+    pip3 install pip-licenses
+
+RUN pip-licenses --order=license --format=markdown

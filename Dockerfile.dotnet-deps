@@ -1,0 +1,26 @@
+ARG BUILD_PLATFORM_TAG=3.1-buster
+FROM mcr.microsoft.com/dotnet/core/sdk:${BUILD_PLATFORM_TAG} AS build
+WORKDIR /src
+
+# Clone Akri
+RUN git clone https://github.com/deislabs/akri.git
+
+# Install dependency licenses tool and add to path
+RUN dotnet tool install --global dotnet-delice --version 1.5.2
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
+# Navigate to onvif video broker .NET Core App and get dependency licenses
+WORKDIR /src/akri/samples/brokers/onvif-video-broker
+RUN dotnet restore "onvif-video-broker.csproj" && \
+    dotnet delice onvif-video-broker.csproj >> /src/deps.o
+
+# Navigate to opcua monitoring broker .NET Core App and get dependency licenses
+WORKDIR /src/akri/samples/brokers/opcua-monitoring-broker
+RUN dotnet restore "opcua-monitoring-broker.csproj" && \
+    dotnet delice opcua-monitoring-broker.csproj >> /src/deps.o
+    
+# Navigate to certificate generator .NET Core App and get dependency licenses
+WORKDIR /src/akri/samples/opcua-certificate-generator
+RUN dotnet restore "opcua-certificate-generator.csproj" && \
+    dotnet delice opcua-certificate-generator.csproj >> /src/deps.o && \
+    cat /src/deps.o
